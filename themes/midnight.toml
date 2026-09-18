@@ -1,0 +1,13 @@
+[theme]
+name = "midnight"
+
+background = "#0D1117"
+foreground = "#C9D1D9"
+
+heading = "#58A6FF"
+bold = "#F78166"
+
+table_border = "#30363D"
+table_header = "#161B22"
+
+table_padding = 4

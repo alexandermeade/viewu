@@ -1,0 +1,13 @@
+[theme]
+name = "nord"
+
+background = "#2E3440"
+foreground = "#D8DEE9"
+
+heading = "#88C0D0"
+bold = "#EBCB8B"
+
+table_border = "#4C566A"
+table_header = "#3B4252"
+
+table_padding = 4

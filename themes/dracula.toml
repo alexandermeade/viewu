@@ -1,0 +1,13 @@
+[theme]
+name = "dracula"
+
+background = "#282A36"
+foreground = "#F8F8F2"
+
+heading = "#BD93F9"
+bold = "#FF79C6"
+
+table_border = "#6272A4"
+table_header = "#44475A"
+
+table_padding = 4

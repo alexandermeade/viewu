@@ -1,0 +1,13 @@
+[theme]
+name = "solarized-light"
+
+background = "#FDF6E3"
+foreground = "#657B83"
+
+heading = "#268BD2"
+bold = "#CB4B16"
+
+table_border = "#93A1A1"
+table_header = "#EEE8D5"
+
+table_padding = 4

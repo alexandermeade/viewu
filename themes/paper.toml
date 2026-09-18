@@ -1,0 +1,13 @@
+[theme]
+name = "paper"
+
+background = "#F4F1EA"
+foreground = "#242424"
+
+heading = "#202020"
+bold = "#202020"
+
+table_border = "#77736B"
+table_header = "#E6E0D4"
+
+table_padding = 4

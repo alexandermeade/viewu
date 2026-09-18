@@ -1,0 +1,13 @@
+[theme]
+name = "catppuccin"
+
+background = "#1E1E2E"
+foreground = "#CDD6F4"
+
+heading = "#CBA6F7"
+bold = "#F5C2E7"
+
+table_border = "#585B70"
+table_header = "#313244"
+
+table_padding = 4

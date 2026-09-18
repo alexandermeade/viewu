@@ -1,0 +1,13 @@
+[theme]
+name = "gruvbox"
+
+background = "#282828"
+foreground = "#EBDBB2"
+
+heading = "#FABD2F"
+bold = "#FE8019"
+
+table_border = "#504945"
+table_header = "#3C3836"
+
+table_padding = 4

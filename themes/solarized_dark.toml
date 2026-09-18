@@ -1,0 +1,13 @@
+[theme]
+name = "solarized-dark"
+
+background = "#002B36"
+foreground = "#839496"
+
+heading = "#268BD2"
+bold = "#CB4B16"
+
+table_border = "#586E75"
+table_header = "#073642"
+
+table_padding = 4

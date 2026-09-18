@@ -1,0 +1,13 @@
+[theme]
+name = "monokai"
+
+background = "#272822"
+foreground = "#F8F8F2"
+
+heading = "#A6E22E"
+bold = "#F92672"
+
+table_border = "#75715E"
+table_header = "#3E3D32"
+
+table_padding = 4
