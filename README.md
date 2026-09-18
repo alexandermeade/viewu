@@ -12,12 +12,14 @@ Using ratatui for an interactive tui experience when reading and having CLI tool
 
 As of right now the goal is to support more formats to be viewable but right now we support 
 <div align="center"> 
-| viewable formats | support | 
-| --- | --- | 
-| DOCX | ✔ |
-| PDF | ✘ | 
-| md | ✘ |
-| csv ? | ✘ | 
+  
+  | viewable formats | support | 
+  | --- | --- | 
+  | DOCX | ✔ |
+  | PDF | ✘ | 
+  | md | ✘ |
+  | csv ? | ✘ | 
+
 </div> 
 
 # under construction
