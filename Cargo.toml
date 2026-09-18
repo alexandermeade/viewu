@@ -3,6 +3,9 @@ name = "viewu"
 version = "0.1.0"
 edition = "2024"
 
+description = "A terminal based file format viewer made for DOCX in mind."
+license = "MIT"
+
 [dependencies]
 anyhow = "1"
 quick-xml = "0.38"
