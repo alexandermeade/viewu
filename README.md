@@ -24,3 +24,9 @@ As of right now the goal is to support more formats to be viewable but right now
 
 # under construction
 :(
+
+# Installation 
+You can run the command below to install it directly
+```
+cargo install viewu
+```
