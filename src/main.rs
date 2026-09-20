@@ -8,6 +8,7 @@ mod document;
 mod docx_reader;
 mod dump;
 mod render;
+mod table;
 
 #[derive(Parser)]
 #[command(
@@ -53,7 +54,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::View { file } => {
+        Command::View{ file } => {
             let document = read_docx(&file)?;
 
             let file_name = file
@@ -65,12 +66,7 @@ fn main() -> Result<()> {
             app::run_tui(document, PathBuf::from("themes"), &file_name)?;
         }
 
-        Command::Dump {
-            file,
-            output,
-            here,
-            format,
-        } => {
+        Command::Dump{file, output, here, format} => {
             let document = read_docx(&file)?;
 
             let format = format.unwrap_or_else(|| {
