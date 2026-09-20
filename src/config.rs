@@ -70,10 +70,7 @@ pub fn parse_hex_color(value: &str) -> Result<Color> {
     let value = value.trim().trim_start_matches('#');
 
     if value.len() != 6 {
-        anyhow::bail!(
-            "invalid color '{}': expected #RRGGBB",
-            value
-        );
+        anyhow::bail!("invalid color '{}': expected #RRGGBB", value);
     }
 
     let r = u8::from_str_radix(&value[0..2], 16)?;
@@ -84,11 +81,11 @@ pub fn parse_hex_color(value: &str) -> Result<Color> {
 }
 
 pub fn load_theme_from_file(path: &Path) -> Result<Theme> {
-    let contents = fs::read_to_string(path)
-        .with_context(|| format!("failed to read {}", path.display()))?;
+    let contents =
+        fs::read_to_string(path).with_context(|| format!("failed to read {}", path.display()))?;
 
-    let file: ThemeFile = toml::from_str(&contents)
-        .with_context(|| format!("failed to parse {}", path.display()))?;
+    let file: ThemeFile =
+        toml::from_str(&contents).with_context(|| format!("failed to parse {}", path.display()))?;
 
     theme_config_to_theme(file.theme)
 }
@@ -163,15 +160,12 @@ pub struct ThemeLoadOutcome {
 pub fn load_startup_theme(dir: &Path) -> ThemeLoadOutcome {
     if let Err(e) = ensure_themes_dir(dir) {
         return ThemeLoadOutcome {
-            status: format!(
-                "Failed to set up themes directory ({e}); using built-in paper theme"
-            ),
+            status: format!("Failed to set up themes directory ({e}); using built-in paper theme"),
             theme: fallback_theme(),
         };
     }
 
-    let name_to_try =
-        load_last_theme_name(dir).unwrap_or_else(|| DEFAULT_THEME_NAME.to_string());
+    let name_to_try = load_last_theme_name(dir).unwrap_or_else(|| DEFAULT_THEME_NAME.to_string());
 
     match load_theme_by_name(dir, &name_to_try) {
         Ok(theme) => ThemeLoadOutcome {
@@ -180,9 +174,7 @@ pub fn load_startup_theme(dir: &Path) -> ThemeLoadOutcome {
         },
 
         Err(e) if name_to_try == DEFAULT_THEME_NAME => ThemeLoadOutcome {
-            status: format!(
-                "Failed to load default theme 'paper' ({e}); using built-in defaults"
-            ),
+            status: format!("Failed to load default theme 'paper' ({e}); using built-in defaults"),
             theme: fallback_theme(),
         },
 

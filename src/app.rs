@@ -2,10 +2,7 @@ use anyhow::Result;
 use crossterm::{
     event::{self, Event, KeyCode},
     execute,
-    terminal::{
-        disable_raw_mode, enable_raw_mode, EnterAlternateScreen,
-        LeaveAlternateScreen,
-    },
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
 use std::io;
 use std::path::PathBuf;
@@ -14,12 +11,10 @@ use crate::config::{self, Theme};
 use crate::document::Document;
 use crate::render;
 
-
 pub struct ThemeMenu {
     pub names: Vec<String>,
     pub selected: usize,
 }
-
 
 pub struct App {
     pub document: Document,
@@ -28,7 +23,7 @@ pub struct App {
     pub themes_dir: PathBuf,
     pub status: Option<String>,
     pub menu: Option<ThemeMenu>,
-    pub src_file: String
+    pub src_file: String,
 }
 
 impl App {
@@ -42,7 +37,7 @@ impl App {
             themes_dir,
             status: Some(outcome.status),
             menu: None,
-            src_file: src_file
+            src_file: src_file,
         }
     }
 
@@ -65,10 +60,7 @@ impl App {
                 self.menu = Some(ThemeMenu { names, selected });
             }
             Ok(_) => {
-                self.status = Some(format!(
-                    "No themes found in {}",
-                    self.themes_dir.display()
-                ));
+                self.status = Some(format!("No themes found in {}", self.themes_dir.display()));
             }
             Err(e) => {
                 self.status = Some(format!("Failed to list themes: {e}"));
@@ -108,8 +100,9 @@ impl App {
                 self.status = Some(format!("Loaded theme '{name}'"));
 
                 if let Err(e) = config::save_last_theme_name(&self.themes_dir, &name) {
-                    self.status =
-                        Some(format!("Loaded '{name}' but failed to save preference: {e}"));
+                    self.status = Some(format!(
+                        "Loaded '{name}' but failed to save preference: {e}"
+                    ));
                 }
             }
             Err(e) => {
@@ -119,53 +112,32 @@ impl App {
     }
 }
 
-pub fn run_tui(
-    document: Document,
-    themes_dir: PathBuf,
-    src_name: &str 
-) -> Result<()> {
+pub fn run_tui(document: Document, themes_dir: PathBuf, src_name: &str) -> Result<()> {
     enable_raw_mode()?;
 
     let mut stdout = io::stdout();
 
-    execute!(
-        stdout,
-        EnterAlternateScreen
-    )?;
+    execute!(stdout, EnterAlternateScreen)?;
 
-    let result =
-        run_app(document, themes_dir, src_name);
+    let result = run_app(document, themes_dir, src_name);
 
     disable_raw_mode()?;
 
-    execute!(
-        stdout,
-        LeaveAlternateScreen
-    )?;
+    execute!(stdout, LeaveAlternateScreen)?;
 
     result
 }
 
-fn run_app(
-    document: Document,
-    themes_dir: PathBuf,
-    src_name: &str
-) -> Result<()> {
+fn run_app(document: Document, themes_dir: PathBuf, src_name: &str) -> Result<()> {
     let mut terminal = ratatui::init();
 
     let mut app = App::new(document, themes_dir, src_name.to_owned());
 
     loop {
-        terminal.draw(|frame| {
-            render::draw(frame, &mut app)
-        })?;
+        terminal.draw(|frame| render::draw(frame, &mut app))?;
 
-        if event::poll(
-            std::time::Duration::from_millis(100),
-        )? {
-            if let Event::Key(key) =
-                event::read()?
-            {
+        if event::poll(std::time::Duration::from_millis(100))? {
+            if let Event::Key(key) = event::read()? {
                 if app.menu.is_some() {
                     match key.code {
                         KeyCode::Down | KeyCode::Char('j') => {
@@ -179,34 +151,27 @@ fn run_app(
                         }
                         KeyCode::Esc | KeyCode::Char('q') => {
                             app.close_theme_menu();
-                       }
+                        }
                         _ => {}
                     }
                 } else {
                     match key.code {
-                        KeyCode::Char('q')
-                        | KeyCode::Esc => break,
+                        KeyCode::Char('q') | KeyCode::Esc => break,
 
-                        KeyCode::Down
-                        | KeyCode::Char('j') => {
+                        KeyCode::Down | KeyCode::Char('j') => {
                             app.scroll_down();
                         }
 
-                        KeyCode::Up
-                        | KeyCode::Char('k') => {
+                        KeyCode::Up | KeyCode::Char('k') => {
                             app.scroll_up();
                         }
 
                         KeyCode::PageDown => {
-                            app.scroll =
-                                app.scroll
-                                    .saturating_add(10);
+                            app.scroll = app.scroll.saturating_add(10);
                         }
 
                         KeyCode::PageUp => {
-                            app.scroll =
-                                app.scroll
-                                    .saturating_sub(10);
+                            app.scroll = app.scroll.saturating_sub(10);
                         }
 
                         KeyCode::Char('t') => {

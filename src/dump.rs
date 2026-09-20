@@ -24,7 +24,8 @@ pub fn document_to_text(document: &Document) -> String {
 
             DocBlock::Table(table) => {
                 for row in &table.rows {
-                    let cells: Vec<String> = row.cells.iter().map(|c| run_text(&c.runs, false)).collect();
+                    let cells: Vec<String> =
+                        row.cells.iter().map(|c| run_text(&c.runs, false)).collect();
                     writeln!(out, "{}", cells.join(" | ")).unwrap();
                 }
                 out.push('\n');
@@ -84,7 +85,11 @@ fn table_to_markdown(table: &crate::document::TableBlock) -> String {
     };
 
     for (row_index, row) in table.rows.iter().enumerate() {
-        let cells: Vec<String> = row.cells.iter().map(|c| escape_table_cell(&run_markdown(&c.runs, false))).collect();
+        let cells: Vec<String> = row
+            .cells
+            .iter()
+            .map(|c| escape_table_cell(&run_markdown(&c.runs, false)))
+            .collect();
         out.push_str(&row_to_markdown(&cells));
 
         if row_index == 0 {
@@ -113,7 +118,11 @@ fn run_text(runs: &[Run], keep_newlines: bool) -> String {
 fn run_markdown(runs: &[Run], keep_newlines: bool) -> String {
     runs.iter()
         .map(|run| {
-            let text = if keep_newlines { run.text.clone() } else { run.text.replace('\n', " ") };
+            let text = if keep_newlines {
+                run.text.clone()
+            } else {
+                run.text.replace('\n', " ")
+            };
 
             if text.trim().is_empty() {
                 return text;

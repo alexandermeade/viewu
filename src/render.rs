@@ -14,13 +14,21 @@ pub fn draw(frame: &mut ratatui::Frame, app: &mut App) {
     let area = frame.area();
 
     frame.render_widget(
-        Block::default().style(Style::default().bg(app.theme.background).fg(app.theme.foreground)),
+        Block::default().style(
+            Style::default()
+                .bg(app.theme.background)
+                .fg(app.theme.foreground),
+        ),
         area,
     );
 
     let layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(1), Constraint::Min(1), Constraint::Length(1)])
+        .constraints([
+            Constraint::Length(1),
+            Constraint::Min(1),
+            Constraint::Length(1),
+        ])
         .split(area);
 
     let header = Paragraph::new(format!(" ViewU {}", app.theme.name)).style(
@@ -36,11 +44,19 @@ pub fn draw(frame: &mut ratatui::Frame, app: &mut App) {
     let lines = document_to_lines(&app.document, document_width, &app.theme);
 
     let document = Paragraph::new(lines)
-        .style(Style::default().fg(app.theme.foreground).bg(app.theme.background))
+        .style(
+            Style::default()
+                .fg(app.theme.foreground)
+                .bg(app.theme.background),
+        )
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(app.theme.table_border).bg(app.theme.background))
+                .border_style(
+                    Style::default()
+                        .fg(app.theme.table_border)
+                        .bg(app.theme.background),
+                )
                 .title(app.src_file.clone()),
         )
         .wrap(Wrap { trim: false })
@@ -58,7 +74,9 @@ pub fn draw(frame: &mut ratatui::Frame, app: &mut App) {
 const FOOTER_HINT: &str = " ↑/k Up   ↓/j Down   PgUp/PgDn Scroll   t Theme   q/Esc Quit ";
 
 fn draw_footer(frame: &mut ratatui::Frame, app: &App, area: Rect) {
-    let footer_style = Style::default().fg(app.theme.foreground).bg(app.theme.background);
+    let footer_style = Style::default()
+        .fg(app.theme.foreground)
+        .bg(app.theme.background);
     let status_text = app.status.as_deref().unwrap_or("");
 
     if status_text.is_empty() {
@@ -75,7 +93,9 @@ fn draw_footer(frame: &mut ratatui::Frame, app: &App, area: Rect) {
 
     frame.render_widget(Paragraph::new(FOOTER_HINT).style(footer_style), columns[0]);
     frame.render_widget(
-        Paragraph::new(format!("{status_text} ")).alignment(Alignment::Right).style(footer_style),
+        Paragraph::new(format!("{status_text} "))
+            .alignment(Alignment::Right)
+            .style(footer_style),
         columns[1],
     );
 }
@@ -123,12 +143,21 @@ fn draw_theme_menu(frame: &mut ratatui::Frame, app: &App, menu: &ThemeMenu) {
         .iter()
         .enumerate()
         .map(|(i, name)| {
-            let marker = if name == &app.theme.name { "→ " } else { "  " };
+            let marker = if name == &app.theme.name {
+                "→ "
+            } else {
+                "  "
+            };
 
             let style = if i == menu.selected {
-                Style::default().fg(app.theme.background).bg(app.theme.heading).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(app.theme.background)
+                    .bg(app.theme.heading)
+                    .add_modifier(Modifier::BOLD)
             } else {
-                Style::default().fg(app.theme.foreground).bg(app.theme.background)
+                Style::default()
+                    .fg(app.theme.foreground)
+                    .bg(app.theme.background)
             };
 
             Line::from(Span::styled(format!("{marker}{name}"), style))
@@ -144,7 +173,11 @@ fn draw_theme_menu(frame: &mut ratatui::Frame, app: &App, menu: &ThemeMenu) {
     frame.render_widget(Paragraph::new(lines).block(block), popup_area);
 }
 
-pub fn document_to_lines(document: &Document, available_width: usize, theme: &Theme) -> Vec<Line<'static>> {
+pub fn document_to_lines(
+    document: &Document,
+    available_width: usize,
+    theme: &Theme,
+) -> Vec<Line<'static>> {
     let mut lines = Vec::new();
 
     for block in &document.blocks {
@@ -173,7 +206,11 @@ pub fn document_to_lines(document: &Document, available_width: usize, theme: &Th
     lines
 }
 
-fn paragraph_to_lines(paragraph: &ParagraphBlock, heading_level: Option<u8>, theme: &Theme) -> Vec<Line<'static>> {
+fn paragraph_to_lines(
+    paragraph: &ParagraphBlock,
+    heading_level: Option<u8>,
+    theme: &Theme,
+) -> Vec<Line<'static>> {
     let mut spans = Vec::new();
 
     if let Some(level) = heading_level {
@@ -230,7 +267,12 @@ fn contains_url(text: &str) -> bool {
 }
 
 fn is_url(text: &str) -> bool {
-    let text = text.trim_matches(|c: char| matches!(c, '(' | ')' | '[' | ']' | '{' | '}' | '<' | '>' | '"' | '\''));
+    let text = text.trim_matches(|c: char| {
+        matches!(
+            c,
+            '(' | ')' | '[' | ']' | '{' | '}' | '<' | '>' | '"' | '\''
+        )
+    });
     text.starts_with("http://") || text.starts_with("https://") || text.starts_with("www.")
 }
 
@@ -274,13 +316,18 @@ fn render_row_line(
     border_color: Color,
 ) -> Line<'static> {
     let border_style = Style::default().fg(border_color);
-    let mut spans = vec![Span::raw(" ".repeat(left_padding)), Span::styled("│", border_style)];
+    let mut spans = vec![
+        Span::raw(" ".repeat(left_padding)),
+        Span::styled("│", border_style),
+    ];
 
     for column in 0..column_count {
         let width = widths.get(column).copied().unwrap_or(3);
         let cell_line = wrapped_cells.get(column).and_then(|l| l.get(line_index));
 
-        let text_width: usize = cell_line.map(|line| line.iter().map(|(t, _)| t.width()).sum()).unwrap_or(0);
+        let text_width: usize = cell_line
+            .map(|line| line.iter().map(|(t, _)| t.width()).sum())
+            .unwrap_or(0);
         let pad = width.saturating_sub(text_width);
 
         spans.push(Span::raw(" "));
@@ -294,7 +341,11 @@ fn render_row_line(
     Line::from(spans)
 }
 
-fn resolve_column_widths(table: &TableBlock, column_count: usize, usable_width: usize) -> Vec<usize> {
+fn resolve_column_widths(
+    table: &TableBlock,
+    column_count: usize,
+    usable_width: usize,
+) -> Vec<usize> {
     let total_twips: u32 = table.column_widths.iter().sum();
 
     let mut widths = if total_twips > 0 {
@@ -330,9 +381,12 @@ fn table_to_lines(table: &TableBlock, available_width: usize, theme: &Theme) -> 
     }
 
     let widths = resolve_column_widths(table, column_count, usable_width);
-    let left_padding = theme.table_padding + usable_width.saturating_sub(table_line_width(&widths)) / 2;
+    let left_padding =
+        theme.table_padding + usable_width.saturating_sub(table_line_width(&widths)) / 2;
 
-    let border = |l: char, m: char, r: char| centered_table_border(&widths, l, m, r, left_padding, theme.table_border);
+    let border = |l: char, m: char, r: char| {
+        centered_table_border(&widths, l, m, r, left_padding, theme.table_border)
+    };
 
     let mut lines = vec![border('┌', '┬', '┐')];
 
@@ -347,7 +401,14 @@ fn table_to_lines(table: &TableBlock, available_width: usize, theme: &Theme) -> 
         let row_height = wrapped_cells.iter().map(Vec::len).max().unwrap_or(1);
 
         lines.extend((0..row_height).map(|line_index| {
-            render_row_line(&wrapped_cells, &widths, column_count, line_index, left_padding, theme.table_border)
+            render_row_line(
+                &wrapped_cells,
+                &widths,
+                column_count,
+                line_index,
+                left_padding,
+                theme.table_border,
+            )
         }));
 
         if row_index + 1 < table.rows.len() {
@@ -359,7 +420,12 @@ fn table_to_lines(table: &TableBlock, available_width: usize, theme: &Theme) -> 
     lines
 }
 
-fn table_widths_from_twips(table: &TableBlock, column_count: usize, total_twips: u32, available_width: usize) -> Vec<usize> {
+fn table_widths_from_twips(
+    table: &TableBlock,
+    column_count: usize,
+    total_twips: u32,
+    available_width: usize,
+) -> Vec<usize> {
     let usable_width = available_width.saturating_sub(column_count * 3);
 
     (0..column_count)
@@ -417,7 +483,14 @@ fn table_line_width(widths: &[usize]) -> usize {
     widths.iter().sum::<usize>() + widths.len() * 2 + 1
 }
 
-fn centered_table_border(widths: &[usize], left: char, middle: char, right: char, left_padding: usize, color: Color) -> Line<'static> {
+fn centered_table_border(
+    widths: &[usize],
+    left: char,
+    middle: char,
+    right: char,
+    left_padding: usize,
+    color: Color,
+) -> Line<'static> {
     let mut result = " ".repeat(left_padding);
     result.push(left);
 
@@ -513,7 +586,11 @@ fn wrap_runs(runs: &[Run], width: usize) -> Vec<Vec<(String, Style)>> {
 
             Token::Word(fragments) => {
                 let word_width: usize = fragments.iter().map(|(t, _)| t.width()).sum();
-                let required = if current.is_empty() { word_width } else { word_width + 1 };
+                let required = if current.is_empty() {
+                    word_width
+                } else {
+                    word_width + 1
+                };
 
                 if current_width + required > width && !current.is_empty() {
                     result.push(std::mem::take(&mut current));

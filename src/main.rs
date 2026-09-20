@@ -1,16 +1,20 @@
 use anyhow::{Context, Result};
-use clap::{Parser, Subcommand, ValueEnum, ArgAction};
+use clap::{ArgAction, Parser, Subcommand, ValueEnum};
 use std::{fs, path::PathBuf};
 
 mod app;
 mod config;
-mod docx_reader;
 mod document;
+mod docx_reader;
 mod dump;
 mod render;
 
 #[derive(Parser)]
-#[command(name = "docx_tools", version, about = "View and inspect file formats in the terminal")]
+#[command(
+    name = "docx_tools",
+    version,
+    about = "View and inspect file formats in the terminal"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -19,9 +23,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     /// Open the interactive terminal viewer
-    View {
-        file: PathBuf,
-    },
+    View { file: PathBuf },
 
     /// Dump the document's content to a file
     Dump {
@@ -30,8 +32,8 @@ enum Command {
         /// Where to write the output (defaults to <file>.txt, or <file>.md with --format markdown)
         #[arg(short, long)]
         output: Option<PathBuf>,
-        
-        /// Writes the content of the output into the terminal 
+
+        /// Writes the content of the output into the terminal
         #[arg(long, action = ArgAction::SetTrue)]
         here: Option<bool>,
 
@@ -63,7 +65,12 @@ fn main() -> Result<()> {
             app::run_tui(document, PathBuf::from("themes"), &file_name)?;
         }
 
-        Command::Dump { file, output, here, format } => {
+        Command::Dump {
+            file,
+            output,
+            here,
+            format,
+        } => {
             let document = read_docx(&file)?;
 
             let format = format.unwrap_or_else(|| {
@@ -71,9 +78,15 @@ fn main() -> Result<()> {
                     .as_ref()
                     .and_then(|p| p.extension())
                     .and_then(|e| e.to_str())
-                    .is_some_and(|e| e.eq_ignore_ascii_case("md") || e.eq_ignore_ascii_case("markdown"));
+                    .is_some_and(|e| {
+                        e.eq_ignore_ascii_case("md") || e.eq_ignore_ascii_case("markdown")
+                    });
 
-                if is_markdown { Format::Markdown } else { Format::Text }
+                if is_markdown {
+                    Format::Markdown
+                } else {
+                    Format::Text
+                }
             });
 
             let default_ext = match format {
@@ -87,7 +100,9 @@ fn main() -> Result<()> {
                 Format::Markdown => dump::document_to_markdown(&document),
             };
 
-            if let Some(paste_here) = here && paste_here{
+            if let Some(paste_here) = here
+                && paste_here
+            {
                 print!("{}", text);
                 return Ok(());
             }

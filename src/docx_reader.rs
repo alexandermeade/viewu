@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use quick_xml::{
-    events::{BytesStart, Event as XmlEvent},
     Reader,
+    events::{BytesStart, Event as XmlEvent},
 };
 use ratatui::style::Color;
 use std::{fs::File, io::Read, path::PathBuf};

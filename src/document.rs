@@ -1,6 +1,5 @@
 use ratatui::style::Color;
 
-
 pub struct Document {
     pub blocks: Vec<DocBlock>,
 }
