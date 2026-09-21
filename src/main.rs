@@ -7,6 +7,7 @@ mod config;
 mod document;
 mod docx_reader;
 mod dump;
+mod md_reader;
 mod render;
 mod table;
 
@@ -24,7 +25,14 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     /// Open the interactive terminal viewer
-    View { file: PathBuf },
+    View {
+        file: PathBuf,
+
+        /// Treat the file as this format instead of guessing from its extension
+        /// (useful for extensionless files, or files with a misleading extension)
+        #[arg(long = "as", value_enum)]
+        format_override: Option<InputFormat>,
+    },
 
     /// Dump the document's content to a file
     Dump {
@@ -34,28 +42,85 @@ enum Command {
         #[arg(short, long)]
         output: Option<PathBuf>,
 
-        /// Writes the content of the output into the terminal
+        /// Print the output to the terminal instead of writing a file
         #[arg(long, action = ArgAction::SetTrue)]
-        here: Option<bool>,
+        here: bool,
 
         /// Output format. Defaults to markdown if the output file ends in .md, text otherwise.
         #[arg(short, long, value_enum)]
-        format: Option<Format>,
+        format: Option<OutputFormat>,
+
+        /// Treat the input file as this format instead of guessing from its extension
+        /// (useful for extensionless files, or files with a misleading extension)
+        #[arg(long = "as", value_enum)]
+        format_override: Option<InputFormat>,
     },
 }
 
-#[derive(Clone, Copy, ValueEnum)]
-enum Format {
+/// The format a document is *read from*. Normally inferred from the input
+/// file's extension, but can be overridden per-command with `--as` when the
+/// extension is missing or misleading.
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum InputFormat {
+    Docx,
+    Markdown,
+}
+
+impl InputFormat {
+    fn from_path(path: &PathBuf) -> Result<Self> {
+        match path.extension().and_then(|e| e.to_str()) {
+            Some(ext) if ext.eq_ignore_ascii_case("docx") => Ok(InputFormat::Docx),
+            Some(ext) if ext.eq_ignore_ascii_case("md") || ext.eq_ignore_ascii_case("markdown") => {
+                Ok(InputFormat::Markdown)
+            }
+            Some(ext) => anyhow::bail!(
+                "unsupported input file type: .{ext} (use --as to specify the format explicitly)"
+            ),
+            None => anyhow::bail!(
+                "file has no extension; use --as to specify the format explicitly"
+            ),
+        }
+    }
+}
+
+/// The format a document is *written to*. Only `Dump` produces output, so
+/// only `Dump` has this flag.
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum OutputFormat {
     Text,
     Markdown,
+}
+
+impl OutputFormat {
+    fn extension(self) -> &'static str {
+        match self {
+            OutputFormat::Text => "txt",
+            OutputFormat::Markdown => "md",
+        }
+    }
+
+    /// Infer from the requested output path's extension, defaulting to Text.
+    fn from_output_path(path: Option<&PathBuf>) -> Self {
+        let is_markdown = path
+            .and_then(|p| p.extension())
+            .and_then(|e| e.to_str())
+            .is_some_and(|e| e.eq_ignore_ascii_case("md") || e.eq_ignore_ascii_case("markdown"));
+
+        if is_markdown {
+            OutputFormat::Markdown
+        } else {
+            OutputFormat::Text
+        }
+    }
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::View{ file } => {
-            let document = read_docx(&file)?;
+
+        Command::View { file, format_override } => {
+            let document = read_document(&file, format_override)?;
 
             let file_name = file
                 .file_name()
@@ -66,40 +131,25 @@ fn main() -> Result<()> {
             app::run_tui(document, PathBuf::from("themes"), &file_name)?;
         }
 
-        Command::Dump{file, output, here, format} => {
-            let document = read_docx(&file)?;
+        Command::Dump {
+            file,
+            output,
+            here,
+            format,
+            format_override,
+        } => {
+            let document = read_document(&file, format_override)?;
 
-            let format = format.unwrap_or_else(|| {
-                let is_markdown = output
-                    .as_ref()
-                    .and_then(|p| p.extension())
-                    .and_then(|e| e.to_str())
-                    .is_some_and(|e| {
-                        e.eq_ignore_ascii_case("md") || e.eq_ignore_ascii_case("markdown")
-                    });
-
-                if is_markdown {
-                    Format::Markdown
-                } else {
-                    Format::Text
-                }
-            });
-
-            let default_ext = match format {
-                Format::Text => "txt",
-                Format::Markdown => "md",
-            };
-            let out_path = output.unwrap_or_else(|| file.with_extension(default_ext));
+            let format = format.unwrap_or_else(|| OutputFormat::from_output_path(output.as_ref()));
+            let out_path = output.unwrap_or_else(|| file.with_extension(format.extension()));
 
             let text = match format {
-                Format::Text => dump::document_to_text(&document),
-                Format::Markdown => dump::document_to_markdown(&document),
+                OutputFormat::Text => dump::document_to_text(&document),
+                OutputFormat::Markdown => dump::document_to_markdown(&document),
             };
 
-            if let Some(paste_here) = here
-                && paste_here
-            {
-                print!("{}", text);
+            if here {
+                print!("{text}");
                 return Ok(());
             }
 
@@ -113,14 +163,22 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn read_docx(path: &PathBuf) -> Result<document::Document> {
+/// Reads any supported document type, using `override_format` if given and
+/// otherwise sniffing the input file's extension. Adding a new input format
+/// only requires a new `InputFormat` variant and a new match arm here — no
+/// other CLI surface changes needed.
+fn read_document(path: &PathBuf, override_format: Option<InputFormat>) -> Result<document::Document> {
     if !path.exists() {
         anyhow::bail!("file does not exist: {}", path.display());
     }
 
-    if path.extension().and_then(|x| x.to_str()) != Some("docx") {
-        anyhow::bail!("expected a .docx file");
-    }
+    let format = match override_format {
+        Some(format) => format,
+        None => InputFormat::from_path(path)?,
+    };
 
-    docx_reader::read_docx(path)
+    match format {
+        InputFormat::Docx => docx_reader::read_docx(path),
+        InputFormat::Markdown => md_reader::read_md(path),
+    }
 }
