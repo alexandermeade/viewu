@@ -17,7 +17,7 @@ As of right now the goal is to support more formats to be viewable but right now
   | --- | --- | 
   | DOCX | ✔ |
   | PDF | ✘ | 
-  | md | ✘ |
+  | md | ✔ |
   | csv ? | ✘ | 
 
 </div> 
