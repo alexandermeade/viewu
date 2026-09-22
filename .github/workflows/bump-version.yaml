@@ -1,12 +1,26 @@
-name: Bump Version on Merge
+name: Bump Version
 
 on:
-  push:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+  pull_request:
+    types: [closed]
     branches: [main]
 
 jobs:
   bump-version:
-    if: "!contains(github.event.head_commit.message, 'chore: bump version')"
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -14,6 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Install cargo-edit
@@ -21,8 +36,10 @@ jobs:
         with:
           tool: cargo-edit
 
-      - name: Bump patch version
-        run: cargo set-version --bump patch
+      - name: Bump version
+        run: |
+          BUMP="${{ github.event.inputs.bump || 'patch' }}"
+          cargo set-version --bump "$BUMP"
 
       - name: Read new version
         id: version
