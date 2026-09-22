@@ -112,14 +112,14 @@ impl App {
     }
 }
 
-pub fn run_tui(document: Document, themes_dir: PathBuf, src_name: &str, quit_init: bool) -> Result<()> {
+pub fn run_tui(document: Document, themes_dir: PathBuf, src_name: &str) -> Result<()> {
     enable_raw_mode()?;
 
     let mut stdout = io::stdout();
 
     execute!(stdout, EnterAlternateScreen)?;
 
-    let result = run_app(document, themes_dir, src_name, quit_init);
+    let result = run_app(document, themes_dir, src_name);
 
     disable_raw_mode()?;
 
@@ -128,16 +128,13 @@ pub fn run_tui(document: Document, themes_dir: PathBuf, src_name: &str, quit_ini
     result
 }
 
-fn run_app(document: Document, themes_dir: PathBuf, src_name: &str, quit_init: bool) -> Result<()> {
+fn run_app(document: Document, themes_dir: PathBuf, src_name: &str) -> Result<()> {
     let mut terminal = ratatui::init();
 
     let mut app = App::new(document, themes_dir, src_name.to_owned());
 
     loop {
         terminal.draw(|frame| render::draw(frame, &mut app))?;
-        if quit_init {
-            break;                    
-        }
 
         if event::poll(std::time::Duration::from_millis(100))? {
             if let Event::Key(key) = event::read()? {
