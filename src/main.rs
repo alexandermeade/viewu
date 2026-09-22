@@ -32,12 +32,6 @@ enum Command {
         /// (useful for extensionless files, or files with a misleading extension)
         #[arg(long = "as", value_enum)]
         format_override: Option<InputFormat>,
-
-
-
-        /// quit after init 
-        #[arg(long = "quit-init", action = ArgAction::SetTrue)]
-        quit_init: bool,
     },
 
     /// Dump the document's content to a file
@@ -125,14 +119,14 @@ fn main() -> Result<()> {
 
     match cli.command {
 
-        Command::View { file, format_override, quit_init } => {
+        Command::View { file, format_override } => {
             let document = read_document(&file, format_override)?;
             let file_name = file.file_name().and_then(|f| f.to_str()).context("invalid file name")?.to_owned();
 
             let themes_dir = config::themes_dir()?;
             config::install_default_themes(&themes_dir)?;
 
-            app::run_tui(document, themes_dir, &file_name, quit_init)?;
+            app::run_tui(document, themes_dir, &file_name)?;
         },
         Command::Dump {
             file,
