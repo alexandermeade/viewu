@@ -40,6 +40,42 @@ pub struct Theme {
 
 pub const DEFAULT_THEME_NAME: &str = "paper";
 
+use directories::ProjectDirs;
+use rust_embed::RustEmbed;
+
+// Points at your existing themes/ folder at build time 
+#[derive(RustEmbed)]
+#[folder = "themes/"]
+struct EmbeddedThemes;
+
+pub fn themes_dir() -> Result<PathBuf> {
+    let proj_dirs = ProjectDirs::from("dev", "yourname", "viewu")
+        .context("could not determine a config directory for this platform")?;
+    Ok(proj_dirs.config_dir().join("themes"))
+}
+
+
+/// This function is just here to restore base themes
+/// this function will be audited to only run on
+/// viewu theme --restore-defaults
+pub fn install_default_themes(dir: &Path) -> Result<()> {
+    ensure_themes_dir(dir)?;
+
+    for filename in EmbeddedThemes::iter() {
+        let dest = dir.join(filename.as_ref());
+        if dest.exists() {
+            continue;
+        }
+        if let Some(file) = EmbeddedThemes::get(&filename) {
+            fs::write(&dest, file.data)
+                .with_context(|| format!("failed to write default theme {}", dest.display()))?;
+        }
+    }
+
+    Ok(())
+}
+
+
 pub fn fallback_theme() -> Theme {
     Theme {
         name: DEFAULT_THEME_NAME.to_string(),
